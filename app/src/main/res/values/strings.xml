@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Gcli2api 额度监控</string>
+    <string name="widget_name">Gcli2api 状态组件</string>
+    <string name="shortcut_add_widget">添加桌面组件</string>
+</resources>

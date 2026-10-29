@@ -98,14 +98,18 @@ class MonitorWidgetProvider : AppWidgetProvider() {
             if (summary != null) {
                 views.setTextViewText(R.id.widget_total_accounts, "${summary.validAccounts} / ${summary.totalAccounts}")
 
-                val gPct = Math.round(summary.avgGeminiRemaining * 100)
-                val cPct = Math.round(summary.avgClaudeRemaining * 100)
+                val gwPct = Math.round(summary.avgGeminiWeeklyRemaining * 100)
+                val g5hPct = Math.round(summary.avgGemini5hRemaining * 100)
+                val cwPct = Math.round(summary.avgClaudeWeeklyRemaining * 100)
+                val c5hPct = Math.round(summary.avgClaude5hRemaining * 100)
 
-                views.setTextViewText(R.id.widget_gemini_total, "$gPct%")
-                views.setTextColor(R.id.widget_gemini_total, if (gPct < 20) Color.parseColor("#F38BA8") else Color.parseColor("#A6E3A1"))
+                views.setTextViewText(R.id.widget_gemini_total, "$gwPct% / $g5hPct%")
+                val gMin = minOf(gwPct, g5hPct)
+                views.setTextColor(R.id.widget_gemini_total, if (gMin < 20) Color.parseColor("#F38BA8") else Color.parseColor("#A6E3A1"))
 
-                views.setTextViewText(R.id.widget_claude_total, "$cPct%")
-                views.setTextColor(R.id.widget_claude_total, if (cPct < 20) Color.parseColor("#F38BA8") else Color.parseColor("#A6E3A1"))
+                views.setTextViewText(R.id.widget_claude_total, "$cwPct% / $c5hPct%")
+                val cMin = minOf(cwPct, c5hPct)
+                views.setTextColor(R.id.widget_claude_total, if (cMin < 20) Color.parseColor("#F38BA8") else Color.parseColor("#A6E3A1"))
 
                 views.setViewVisibility(R.id.widget_account_list, View.VISIBLE)
                 views.setViewVisibility(R.id.widget_empty_hint, View.GONE)

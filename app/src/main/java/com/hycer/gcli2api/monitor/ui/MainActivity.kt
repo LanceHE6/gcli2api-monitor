@@ -320,12 +320,17 @@ class MainActivity : ComponentActivity() {
                             )
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            val gPct = Math.round(s.avgGeminiRemaining * 100)
-                            val cPct = Math.round(s.avgClaudeRemaining * 100)
+                            val gwPct = Math.round(s.avgGeminiWeeklyRemaining * 100)
+                            val g5hPct = Math.round(s.avgGemini5hRemaining * 100)
+                            val cwPct = Math.round(s.avgClaudeWeeklyRemaining * 100)
+                            val c5hPct = Math.round(s.avgClaude5hRemaining * 100)
+
+                            val gMin = minOf(gwPct, g5hPct)
+                            val cMin = minOf(cwPct, c5hPct)
 
                             Text(
-                                text = "Gemini 系列总均额: $gPct%",
-                                color = if (gPct < 20) Color(0xFFF38BA8) else Color(0xFFA6E3A1),
+                                text = "Gemini 系列总均额: 周 $gwPct%  |  5h $g5hPct%",
+                                color = if (gMin < 20) Color(0xFFF38BA8) else Color(0xFFA6E3A1),
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
                             )
@@ -333,8 +338,8 @@ class MainActivity : ComponentActivity() {
                             Spacer(modifier = Modifier.height(6.dp))
 
                             Text(
-                                text = "Claude 系列总均额: $cPct%",
-                                color = if (cPct < 20) Color(0xFFF38BA8) else Color(0xFFA6E3A1),
+                                text = "Claude 系列总均额: 周 $cwPct%  |  5h $c5hPct%",
+                                color = if (cMin < 20) Color(0xFFF38BA8) else Color(0xFFA6E3A1),
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
                             )
@@ -377,24 +382,51 @@ class MainActivity : ComponentActivity() {
                             )
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            val gPct = Math.round(acc.geminiRemaining * 100)
-                            val cPct = Math.round(acc.claudeRemaining * 100)
+                            val gwPct = Math.round(acc.geminiWeeklyRemaining * 100)
+                            val g5hPct = Math.round(acc.gemini5hRemaining * 100)
+                            val cwPct = Math.round(acc.claudeWeeklyRemaining * 100)
+                            val c5hPct = Math.round(acc.claude5hRemaining * 100)
 
-                            val gResetStr = if (!acc.geminiReset.isNullOrEmpty() && acc.geminiReset != "N/A") " (${acc.geminiReset} 重置)" else ""
-                            val cResetStr = if (!acc.claudeReset.isNullOrEmpty() && acc.claudeReset != "N/A") " (${acc.claudeReset} 重置)" else ""
+                            val gwResetStr = if (!acc.geminiWeeklyReset.isNullOrEmpty() && acc.geminiWeeklyReset != "N/A") " [周重置: ${acc.geminiWeeklyReset}]" else ""
+                            val g5hResetStr = if (!acc.gemini5hReset.isNullOrEmpty() && acc.gemini5hReset != "N/A") " [5h重置: ${acc.gemini5hReset}]" else ""
+
+                            val cwResetStr = if (!acc.claudeWeeklyReset.isNullOrEmpty() && acc.claudeWeeklyReset != "N/A") " [周重置: ${acc.claudeWeeklyReset}]" else ""
+                            val c5hResetStr = if (!acc.claude5hReset.isNullOrEmpty() && acc.claude5hReset != "N/A") " [5h重置: ${acc.claude5hReset}]" else ""
 
                             Text(
-                                text = "Gemini: $gPct%$gResetStr",
-                                color = if (gPct < 20) Color(0xFFF38BA8) else Color(0xFFA6E3A1),
+                                text = "Gemini:",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold,
                                 fontSize = 13.sp
                             )
+                            Text(
+                                text = "  周额度: $gwPct%$gwResetStr",
+                                color = if (gwPct < 20) Color(0xFFF38BA8) else Color(0xFFA6E3A1),
+                                fontSize = 12.5.sp
+                            )
+                            Text(
+                                text = "  5h额度: $g5hPct%$g5hResetStr",
+                                color = if (g5hPct < 20) Color(0xFFF38BA8) else Color(0xFFA6E3A1),
+                                fontSize = 12.5.sp
+                            )
 
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
 
                             Text(
-                                text = "Claude: $cPct%$cResetStr",
-                                color = if (cPct < 20) Color(0xFFF38BA8) else Color(0xFFA6E3A1),
+                                text = "Claude / 3P:",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold,
                                 fontSize = 13.sp
+                            )
+                            Text(
+                                text = "  周额度: $cwPct%$cwResetStr",
+                                color = if (cwPct < 20) Color(0xFFF38BA8) else Color(0xFFA6E3A1),
+                                fontSize = 12.5.sp
+                            )
+                            Text(
+                                text = "  5h额度: $c5hPct%$c5hResetStr",
+                                color = if (c5hPct < 20) Color(0xFFF38BA8) else Color(0xFFA6E3A1),
+                                fontSize = 12.5.sp
                             )
                         }
                     }

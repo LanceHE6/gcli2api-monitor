@@ -44,17 +44,27 @@ class WidgetItemFactory(private val context: Context) : RemoteViewsService.Remot
 
         views.setTextViewText(R.id.item_email, displayName)
 
-        val gPct = Math.round(acc.geminiRemaining * 100)
-        val cPct = Math.round(acc.claudeRemaining * 100)
+        val gwPct = Math.round(acc.geminiWeeklyRemaining * 100)
+        val g5hPct = Math.round(acc.gemini5hRemaining * 100)
+        val cwPct = Math.round(acc.claudeWeeklyRemaining * 100)
+        val c5hPct = Math.round(acc.claude5hRemaining * 100)
 
-        val gReset = if (!acc.geminiReset.isNullOrEmpty() && acc.geminiReset != "N/A") " (${acc.geminiReset.takeLast(5)})" else ""
-        val cReset = if (!acc.claudeReset.isNullOrEmpty() && acc.claudeReset != "N/A") " (${acc.claudeReset.takeLast(5)})" else ""
+        val gwReset = if (!acc.geminiWeeklyReset.isNullOrEmpty() && acc.geminiWeeklyReset != "N/A") " (${acc.geminiWeeklyReset.takeLast(5)})" else ""
+        val g5hReset = if (!acc.gemini5hReset.isNullOrEmpty() && acc.gemini5hReset != "N/A") " (${acc.gemini5hReset.takeLast(5)})" else ""
+        val cwReset = if (!acc.claudeWeeklyReset.isNullOrEmpty() && acc.claudeWeeklyReset != "N/A") " (${acc.claudeWeeklyReset.takeLast(5)})" else ""
+        val c5hReset = if (!acc.claude5hReset.isNullOrEmpty() && acc.claude5hReset != "N/A") " (${acc.claude5hReset.takeLast(5)})" else ""
 
-        views.setTextViewText(R.id.item_gemini_quota, "Gemini: $gPct%$gReset")
-        views.setTextColor(R.id.item_gemini_quota, if (gPct < 20) Color.parseColor("#F38BA8") else Color.parseColor("#A6E3A1"))
+        views.setTextViewText(R.id.item_gemini_weekly, "G周: $gwPct%$gwReset")
+        views.setTextColor(R.id.item_gemini_weekly, if (gwPct < 20) Color.parseColor("#F38BA8") else Color.parseColor("#A6E3A1"))
 
-        views.setTextViewText(R.id.item_claude_quota, "Claude: $cPct%$cReset")
-        views.setTextColor(R.id.item_claude_quota, if (cPct < 20) Color.parseColor("#F38BA8") else Color.parseColor("#A6E3A1"))
+        views.setTextViewText(R.id.item_gemini_5h, "G 5h: $g5hPct%$g5hReset")
+        views.setTextColor(R.id.item_gemini_5h, if (g5hPct < 20) Color.parseColor("#F38BA8") else Color.parseColor("#A6E3A1"))
+
+        views.setTextViewText(R.id.item_claude_weekly, "C周: $cwPct%$cwReset")
+        views.setTextColor(R.id.item_claude_weekly, if (cwPct < 20) Color.parseColor("#F38BA8") else Color.parseColor("#A6E3A1"))
+
+        views.setTextViewText(R.id.item_claude_5h, "C 5h: $c5hPct%$c5hReset")
+        views.setTextColor(R.id.item_claude_5h, if (c5hPct < 20) Color.parseColor("#F38BA8") else Color.parseColor("#A6E3A1"))
 
         // 点击卡片直接唤起 App
         val fillInIntent = Intent()

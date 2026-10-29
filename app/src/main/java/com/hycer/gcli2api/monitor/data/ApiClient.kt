@@ -56,15 +56,18 @@ object ApiClient {
             val nowStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
             if (credList.isEmpty()) {
                 return@withContext Result.success(
-                    MonitorSummary(0, 0, 1.0f, 1.0f, nowStr, emptyList())
+                    MonitorSummary(0, 0, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, nowStr, emptyList())
                 )
             }
 
             // 2. 查询各账号额度
             val details = mutableListOf<AccountQuotaDetail>()
-            var totalGemini = 0.0f
+            var totalGeminiWeekly = 0.0f
+            var totalGemini5h = 0.0f
             var countGemini = 0
-            var totalClaude = 0.0f
+
+            var totalClaudeWeekly = 0.0f
+            var totalClaude5h = 0.0f
             var countClaude = 0
 
             for (cred in credList) {
@@ -74,10 +77,16 @@ object ApiClient {
                     .addHeader("Authorization", "Bearer $apiKey")
                     .build()
 
-                var minGemini: Float? = null
-                var minClaude: Float? = null
-                var geminiReset: String? = null
-                var claudeReset: String? = null
+                var geminiWeekly: Float? = null
+                var geminiWeeklyReset: String? = null
+                var gemini5h: Float? = null
+                var gemini5hReset: String? = null
+
+                var claudeWeekly: Float? = null
+                var claudeWeeklyReset: String? = null
+                var claude5h: Float? = null
+                var claude5hReset: String? = null
+
                 val modelList = mutableListOf<ModelQuota>()
 
                 try {
@@ -96,18 +105,60 @@ object ApiClient {
                                     val rem = mObj.optDouble("remaining", 1.0).toFloat()
                                     val resetTime = mObj.optString("resetTime", null)
                                     val resetTimeRaw = mObj.optString("resetTimeRaw", null)
-                                    modelList.add(ModelQuota(modelKey, rem, resetTime, resetTimeRaw))
+                                    val window = mObj.optString("window", null)
+                                    val group = mObj.optString("group", null)
+                                    modelList.add(ModelQuota(modelKey, rem, resetTime, resetTimeRaw, window, group))
 
                                     val lowerKey = modelKey.lowercase()
-                                    if (lowerKey.contains("claude")) {
-                                        if (minClaude == null || rem < minClaude) {
-                                            minClaude = rem
-                                            claudeReset = resetTime
+                                    val isWeekly = window.equals("weekly", ignoreCase = true) || lowerKey.contains("weekly")
+                                    val is5h = window.equals("5h", ignoreCase = true) || lowerKey.contains("5h")
+
+                                    // 分辨 Gemini 还是 Claude/3P
+                                    val isGemini = lowerKey.contains("gemini")
+                                    val isClaude = lowerKey.contains("claude") || lowerKey.contains("3p") || lowerKey.contains("gpt")
+
+                                    if (isGemini) {
+                                        if (isWeekly) {
+                                            if (geminiWeekly == null || rem < geminiWeekly) {
+                                                geminiWeekly = rem
+                                                geminiWeeklyReset = resetTime
+                                            }
+                                        } else if (is5h) {
+                                            if (gemini5h == null || rem < gemini5h) {
+                                                gemini5h = rem
+                                                gemini5hReset = resetTime
+                                            }
+                                        } else {
+                                            // 旧格式兼容，无 weekly/5h 区分，默认当作 5h 与 weekly 的保守值
+                                            if (geminiWeekly == null || rem < geminiWeekly) {
+                                                geminiWeekly = rem
+                                                geminiWeeklyReset = resetTime
+                                            }
+                                            if (gemini5h == null || rem < gemini5h) {
+                                                gemini5h = rem
+                                                gemini5hReset = resetTime
+                                            }
                                         }
-                                    } else if (lowerKey.contains("gemini")) {
-                                        if (minGemini == null || rem < minGemini) {
-                                            minGemini = rem
-                                            geminiReset = resetTime
+                                    } else if (isClaude) {
+                                        if (isWeekly) {
+                                            if (claudeWeekly == null || rem < claudeWeekly) {
+                                                claudeWeekly = rem
+                                                claudeWeeklyReset = resetTime
+                                            }
+                                        } else if (is5h) {
+                                            if (claude5h == null || rem < claude5h) {
+                                                claude5h = rem
+                                                claude5hReset = resetTime
+                                            }
+                                        } else {
+                                            if (claudeWeekly == null || rem < claudeWeekly) {
+                                                claudeWeekly = rem
+                                                claudeWeeklyReset = resetTime
+                                            }
+                                            if (claude5h == null || rem < claude5h) {
+                                                claude5h = rem
+                                                claude5hReset = resetTime
+                                            }
                                         }
                                     }
                                 }
@@ -117,47 +168,65 @@ object ApiClient {
                         throw Exception("HTTP ${quotaResp.code}")
                     }
                 } catch (e: Exception) {
-                    // 若获取该账号额度失败，沿用上一次持久化缓存中的该账号数据，避免误置为 100%
+                    // 若获取该账号额度失败，沿用上一次持久化缓存中的该账号数据
                     val lastSaved = ConfigManager.getCachedSummary(context)?.accountDetails?.find { it.filename == cred.filename }
                     if (lastSaved != null) {
-                        minGemini = lastSaved.geminiRemaining
-                        minClaude = lastSaved.claudeRemaining
-                        geminiReset = lastSaved.geminiReset
-                        claudeReset = lastSaved.claudeReset
+                        geminiWeekly = lastSaved.geminiWeeklyRemaining
+                        geminiWeeklyReset = lastSaved.geminiWeeklyReset
+                        gemini5h = lastSaved.gemini5hRemaining
+                        gemini5hReset = lastSaved.gemini5hReset
+
+                        claudeWeekly = lastSaved.claudeWeeklyRemaining
+                        claudeWeeklyReset = lastSaved.claudeWeeklyReset
+                        claude5h = lastSaved.claude5hRemaining
+                        claude5hReset = lastSaved.claude5hReset
                     }
                 }
 
-                val finalGemini = minGemini ?: 1.0f
-                val finalClaude = minClaude ?: 1.0f
+                val finalGWeekly = geminiWeekly ?: 1.0f
+                val finalG5h = gemini5h ?: 1.0f
+                val finalCWeekly = claudeWeekly ?: 1.0f
+                val finalC5h = claude5h ?: 1.0f
 
-                totalGemini += finalGemini
+                totalGeminiWeekly += finalGWeekly
+                totalGemini5h += finalG5h
                 countGemini++
-                totalClaude += finalClaude
+
+                totalClaudeWeekly += finalCWeekly
+                totalClaude5h += finalC5h
                 countClaude++
 
                 details.add(
                     AccountQuotaDetail(
                         filename = cred.filename,
                         email = cred.userEmail ?: cred.filename,
-                        geminiRemaining = finalGemini,
-                        claudeRemaining = finalClaude,
-                        geminiReset = geminiReset,
-                        claudeReset = claudeReset,
+                        geminiWeeklyRemaining = finalGWeekly,
+                        gemini5hRemaining = finalG5h,
+                        geminiWeeklyReset = geminiWeeklyReset,
+                        gemini5hReset = gemini5hReset,
+                        claudeWeeklyRemaining = finalCWeekly,
+                        claude5hRemaining = finalC5h,
+                        claudeWeeklyReset = claudeWeeklyReset,
+                        claude5hReset = claude5hReset,
                         allModels = modelList
                     )
                 )
             }
 
-            val avgGemini = if (countGemini > 0) totalGemini / countGemini else 1.0f
-            val avgClaude = if (countClaude > 0) totalClaude / countClaude else 1.0f
+            val avgGWeekly = if (countGemini > 0) totalGeminiWeekly / countGemini else 1.0f
+            val avgG5h = if (countGemini > 0) totalGemini5h / countGemini else 1.0f
+            val avgCWeekly = if (countClaude > 0) totalClaudeWeekly / countClaude else 1.0f
+            val avgC5h = if (countClaude > 0) totalClaude5h / countClaude else 1.0f
             val validCount = credList.count { it.isValid }
 
             Result.success(
                 MonitorSummary(
                     totalAccounts = credList.size,
                     validAccounts = validCount,
-                    avgGeminiRemaining = avgGemini,
-                    avgClaudeRemaining = avgClaude,
+                    avgGeminiWeeklyRemaining = avgGWeekly,
+                    avgGemini5hRemaining = avgG5h,
+                    avgClaudeWeeklyRemaining = avgCWeekly,
+                    avgClaude5hRemaining = avgC5h,
                     lastUpdated = nowStr,
                     accountDetails = details
                 )

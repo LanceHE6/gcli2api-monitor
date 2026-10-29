@@ -21,25 +21,55 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="3dp"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/item_gemini_quota"
+        <!-- 左列: Gemini (周 + 5h) -->
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Gemini: 100%"
-            android:textColor="#A6E3A1"
-            android:textSize="11sp" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/item_claude_quota"
+            <TextView
+                android:id="@+id/item_gemini_weekly"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="G周: 100%"
+                android:textColor="#A6E3A1"
+                android:textSize="10.5sp" />
+
+            <TextView
+                android:id="@+id/item_gemini_5h"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="G 5h: 100%"
+                android:textColor="#A6E3A1"
+                android:textSize="10.5sp" />
+        </LinearLayout>
+
+        <!-- 右列: Claude (周 + 5h) -->
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Claude: 100%"
-            android:textColor="#A6E3A1"
-            android:textSize="11sp" />
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/item_claude_weekly"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C周: 100%"
+                android:textColor="#A6E3A1"
+                android:textSize="10.5sp" />
+
+            <TextView
+                android:id="@+id/item_claude_5h"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C 5h: 100%"
+                android:textColor="#A6E3A1"
+                android:textSize="10.5sp" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>
